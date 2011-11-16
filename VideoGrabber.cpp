@@ -68,20 +68,26 @@ DWORD WINAPI ListeningRoutine(LPVOID lpParam)
 {
 	BOOL isCapturing = FALSE;
 	VideoGrabber* videoGrabber = (VideoGrabber*)lpParam;
+	static PTSTR captureFileName;
 	
 	while (videoGrabber->IsEnabled())
 	{
 		videoGrabber->GrabFrame();
 
-		if (videoGrabber->mMotionDetectedDuringLastSecond && !isCapturing) 
+		if (videoGrabber->mMotionDetectedDuringLastSecond) 
 		{
-			PSTR captureFileName = videoGrabber->GetNewDataFileName();
-			capFileSetCaptureFile(videoGrabber->camhwnd, captureFileName);
-			capCaptureSequence(videoGrabber->camhwnd);
+			if (!isCapturing)
+			{
+				captureFileName = videoGrabber->GetNewDataFileName();
+				// MakeSureDirectiryPathExists(captureFileName);
+				capFileSetCaptureFile(videoGrabber->camhwnd, captureFileName);
+				capCaptureSequence(videoGrabber->camhwnd);
+			}
 		} 
 		else if (isCapturing)
 		{
 			capCaptureStop(videoGrabber->camhwnd);
+			videoGrabber->GetDataAccumulator()->LogVideo(captureFileName);
 		}
 
 		Sleep(1000); 

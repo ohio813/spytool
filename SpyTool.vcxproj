@@ -21,7 +21,16 @@
     <ClInclude Include="DataAccumulator.h" />
     <ClInclude Include="DataProvider.h" />
     <ClInclude Include="KeyLogger.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="VideoGrabber.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SpyTool.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="html1.htm">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{89AC9768-15B5-449A-9C3B-518D5E59F001}</ProjectGuid>

