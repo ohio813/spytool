@@ -1,7 +1,8 @@
-#include "DataAccumulator.h"
-#include "DataProvider.h"
 #include <Windows.h>
 #include <stdio.h>
+#include "DataAccumulator.h"
+#include "DataProvider.h"
+#include "FileSystemEntity.h"
 
 DataAccumulator::DataAccumulator(void)
 {
@@ -81,4 +82,4 @@ int DataAccumulator::GetElapsedSecondsFromLastLog()
 	mLastLogTime = nowFT;
 
 	return seconds;
-}
+};
