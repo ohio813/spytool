@@ -88,4 +88,27 @@ public:
 
 		return current;
 	}
+
+	// The given node is previous node to that actually set for deletion
+	// Doesn't check whether given node is in the list
+	// If prevNode is NULL, head is assumed
+	void Remove(ListNode* prevNode) {
+		if (count == 0) throw "Attempt to remove from enpty list";
+		ListNode* node;
+
+		if (prevNode == NULL) {
+			node = head;
+			head = head->GetNext();
+		} else {
+			node = prevNode->GetNext();
+			prevNode->SetNext(node->GetNext());
+		}
+
+		if (node == tail) {
+			tail = prevNode;
+		}
+
+		delete node;
+		count--;
+	}
 };

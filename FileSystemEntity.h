@@ -1,5 +1,6 @@
 #include "ListQueue.h"
 #include <Windows.h>
+#include <Shlwapi.h>
 
 // Fuck the CPP .H and .CPP files 
 // WTF!??!? Why duplicate the code? Crappy language.
@@ -133,5 +134,37 @@ public:
 		}
 
 		RemoveDirectoryW(GetName());
+	}
+
+	void DeleteOldestEntity() {
+		EntityNode *prevOldest = NULL, *oldest = ((EntityNode*)innerEntities->GetNext()); // first entity
+		EntityNode *prevNode = NULL, *next = NULL;
+
+		for(int iter = 1; iter < innerEntities->GetCount(); iter++) {
+			prevNode = next;
+			next = ((EntityNode*)innerEntities->GetNext());
+			if (StrCmpW(oldest->GetEntity()->GetName(), next->GetEntity()->GetName()) < 0) {
+				oldest = next;
+				prevOldest = prevNode;
+			}
+		}
+
+		oldest->GetEntity()->Delete(); // Delete file/directory
+		innerEntities->Remove(prevOldest); 
+	}
+
+	FileSystemEntity* FindEntity(wchar_t* name) {
+		int entitiesCount = innerEntities->GetCount();
+		EntityNode* current;
+
+		for (int i= 0; i<entitiesCount; i++) {
+			current = (EntityNode*)innerEntities->GetNext();
+
+			if (StrCmpW(current->GetEntity()->GetName(), name) == 0) {
+				return current->GetEntity();
+			}
+		}
+
+		return NULL;
 	}
 };
