@@ -3,7 +3,7 @@
 // And if I use them this fucking CPP includes them in my code! It's not resolved by linking!
 // I wanna keep my footprint low. OMG, CPP programmers, if you could imagine how C# is good!
 // This is classic stuff for TDD, but in the shitty CPP there are no good tools for that. Sucks.
-
+#pragma once
 #include <stdlib.h>
 
 class ListNode {

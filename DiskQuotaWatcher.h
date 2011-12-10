@@ -12,7 +12,7 @@ public:
 	DiskQuotaWatcher(wchar_t* logsDir, int quota);
 	~DiskQuotaWatcher(void);
 	int GetQuota() { return quota; }
-	void SetLogsMaxSize(int logsMaxSize) { this->quota = quota; }
+	void SetQuota(int quota) { this->quota = quota; }
 	void KeepLogsWithinQuota();
 	void RegisterNewFile(wchar_t* file);
 };

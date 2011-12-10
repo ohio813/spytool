@@ -1,3 +1,4 @@
+#pragma once
 #include "ListQueue.h"
 #include <Windows.h>
 #include <Shlwapi.h>
@@ -143,7 +144,7 @@ public:
 		for(int iter = 1; iter < innerEntities->GetCount(); iter++) {
 			prevNode = next;
 			next = ((EntityNode*)innerEntities->GetNext());
-			if (StrCmpW(oldest->GetEntity()->GetName(), next->GetEntity()->GetName()) < 0) {
+			if (wcscmp(oldest->GetEntity()->GetName(), next->GetEntity()->GetName()) < 0) {
 				oldest = next;
 				prevOldest = prevNode;
 			}
@@ -160,7 +161,7 @@ public:
 		for (int i= 0; i<entitiesCount; i++) {
 			current = (EntityNode*)innerEntities->GetNext();
 
-			if (StrCmpW(current->GetEntity()->GetName(), name) == 0) {
+			if (wcscmp(current->GetEntity()->GetName(), name) == 0) {
 				return current->GetEntity();
 			}
 		}
