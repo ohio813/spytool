@@ -18,7 +18,6 @@ int WINAPI WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 	MSG Msg; // save window messages here.
 
-    /* Run the message pump. It will run until GetMessage() returns 0 */
     while (GetMessage (&Msg, NULL, 0, 0))
     {
         TranslateMessage(&Msg); // Translate virtual-key messages to character messages

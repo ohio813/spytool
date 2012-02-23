@@ -66,6 +66,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="html1.htm" />
+    <None Include="LogHeader.htm" />
   </ItemGroup>
 </Project>

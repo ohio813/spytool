@@ -14,6 +14,8 @@ protected:
 	virtual PSTR GetName() = 0;
 
 public:
+	static const PSTR const DATA_DIR;
+
 	DataProvider(void)
 	{
 		mIsEnabled = false;

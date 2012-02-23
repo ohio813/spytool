@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <Windows.h>
 
-const PSTR const DATA_DIR = "accumulated";
+const PSTR const DataProvider::DATA_DIR = "accumulated";
 
 // Returns DATA_DIR + / + date + / + DataProvider.Name + / + time + . + ext
 PSTR DataProvider::GetNewDataFileName()
@@ -13,22 +13,22 @@ PSTR DataProvider::GetNewDataFileName()
 	GetLocalTime(&localTime);
 	
 	strcpy(fileName, DATA_DIR);
-	strcpy(fileName, "\\");
+	strcat(fileName, "\\");
 
 	char date[20];
-	sscanf(date, "%d_%d_%d", localTime.wDay, localTime.wMonth, localTime.wYear);
-	strcpy(fileName, date);
+	sprintf(date, "%hu_%hu_%hu\n", localTime.wDay, localTime.wMonth, localTime.wYear);
+	strcat(fileName, date);
 
-	strcpy(fileName, "\\");
-	strcpy(fileName, GetName());
-	strcpy(fileName, "\\");
+	strcat(fileName, "\\");
+	strcat(fileName, GetName());
+	strcat(fileName, "\\");
 
 	char time[20];
 	sscanf(time, "%d_%d_%d", localTime.wHour, localTime.wMinute, localTime.wSecond);
-	strcpy(fileName, time);
+	strcat(fileName, time);
 	
-	strcpy(fileName, ".");
-	strcpy(fileName, GetExtension());
+	strcat(fileName, ".");
+	strcat(fileName, GetExtension());
 
 	return fileName;
 }

