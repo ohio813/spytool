@@ -89,6 +89,10 @@ public:
 		return current;
 	}
 
+	void ResetIter() {
+		current = NULL;
+	}
+
 	// The given node is previous node to that actually set for deletion
 	// Doesn't check whether given node is in the list
 	// If prevNode is NULL, head is assumed

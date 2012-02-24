@@ -61,14 +61,22 @@ class File : public FileSystemEntity {
 protected:
 	void CalcSize() {
 		HANDLE hFile = CreateFile (GetName(), 0, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-		DWORD size;
+		DWORD lowSize;
+		DWORD highSize;
 
 		if (hFile != INVALID_HANDLE_VALUE) {
-			GetFileSize (hFile, &size);
+			lowSize = GetFileSize (hFile, &highSize);
+			if (lowSize == INVALID_FILE_SIZE) {
+				DWORD errorCode = GetLastError();
+				if (errorCode != ERROR_SUCCESS) {
+					lowSize = highSize = 0;
+				}
+			}
 			CloseHandle (hFile);
 		}
 
-		SetSize(size);
+		// We actually ignore high size because we assume our files to be up to 4GB (0xFFFFFFFF)
+		SetSize(lowSize);
 	}
 
 public: 
@@ -115,6 +123,7 @@ private:
 protected:
 	void CalcSize() {
 		int size = 0;
+		innerEntities->ResetIter();
 		for(int iter = 0; iter < innerEntities->GetCount(); iter++) {
 			size += ((EntityNode*)innerEntities->GetNext())->GetEntity()->GetSize();
 		}
@@ -135,6 +144,7 @@ public:
 	}
 
 	void Delete() {
+		innerEntities->ResetIter();
 		for(int iter = 0; iter < innerEntities->GetCount(); iter++) {
 			((EntityNode*)innerEntities->GetNext())->GetEntity()->Delete();
 		}
@@ -143,6 +153,7 @@ public:
 	}
 
 	void DeleteOldestEntity() {
+		innerEntities->ResetIter();
 		EntityNode *prevOldest = NULL, *oldest = ((EntityNode*)innerEntities->GetNext()); // first entity
 		EntityNode *prevNode = NULL, *next = NULL;
 
@@ -163,6 +174,7 @@ public:
 		int entitiesCount = innerEntities->GetCount();
 		EntityNode* current;
 
+		innerEntities->ResetIter();
 		for (int i= 0; i<entitiesCount; i++) {
 			current = (EntityNode*)innerEntities->GetNext();
 
@@ -187,6 +199,7 @@ public:
 		int entitiesCount = innerEntities->GetCount();
 		EntityNode* current;
 
+		innerEntities->ResetIter();
 		for (int i= 0; i<entitiesCount; i++) {
 			current = (EntityNode*)innerEntities->GetNext();
 
