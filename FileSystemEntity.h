@@ -9,7 +9,7 @@
 
 class FileSystemEntity {
 private:
-	wchar_t* name;
+	PSTR name;
 	int size;
 
 protected: 
@@ -25,7 +25,7 @@ public:
 		size = 0;
 	}
 
-	FileSystemEntity(wchar_t* name) {
+	FileSystemEntity(PSTR name) {
 		this->name = name;
 		size = 0;
 	}
@@ -36,11 +36,11 @@ public:
 		}
 	}
 
-	void SetName(wchar_t* name) {
+	void SetName(PSTR name) {
 		this->name = name;
 	}
 
-	wchar_t* GetName() {
+	PSTR GetName() {
 		return name;
 	}
 
@@ -57,7 +57,7 @@ public:
 class File : public FileSystemEntity {
 protected:
 	void CalcSize() {
-		HANDLE hFile = CreateFileW (GetName(), 0, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+		HANDLE hFile = CreateFile (GetName(), 0, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 		DWORD size;
 
 		if (hFile != INVALID_HANDLE_VALUE) {
@@ -69,11 +69,11 @@ protected:
 	}
 
 public: 
-	File(wchar_t* name) : FileSystemEntity(name) {
+	File(PSTR name) : FileSystemEntity(name) {
 	}
 
 	void Delete() {
-		DeleteFileW(GetName());
+		DeleteFile(GetName());
 	}
 };
 
@@ -103,8 +103,6 @@ public:
 
 class Directory : public FileSystemEntity {
 private:
-	// Here must be something like 
-	// private List<FileSystemEntity> innerEntities;
 	ListQueue* innerEntities;
 
 protected:
@@ -118,7 +116,7 @@ protected:
 	}
 
 public:
-	Directory(wchar_t* name) : FileSystemEntity(name) {
+	Directory(PSTR name) : FileSystemEntity(name) {
 		innerEntities = new ListQueue();
 	}
 
@@ -134,7 +132,7 @@ public:
 			((EntityNode*)innerEntities->GetNext())->GetEntity()->Delete();
 		}
 
-		RemoveDirectoryW(GetName());
+		RemoveDirectory(GetName());
 	}
 
 	void DeleteOldestEntity() {
@@ -144,7 +142,7 @@ public:
 		for(int iter = 1; iter < innerEntities->GetCount(); iter++) {
 			prevNode = next;
 			next = ((EntityNode*)innerEntities->GetNext());
-			if (wcscmp(oldest->GetEntity()->GetName(), next->GetEntity()->GetName()) < 0) {
+			if (strcmp(oldest->GetEntity()->GetName(), next->GetEntity()->GetName()) < 0) {
 				oldest = next;
 				prevOldest = prevNode;
 			}
@@ -154,14 +152,14 @@ public:
 		innerEntities->Remove(prevOldest); 
 	}
 
-	FileSystemEntity* FindEntity(wchar_t* name) {
+	FileSystemEntity* FindEntity(PSTR name) {
 		int entitiesCount = innerEntities->GetCount();
 		EntityNode* current;
 
 		for (int i= 0; i<entitiesCount; i++) {
 			current = (EntityNode*)innerEntities->GetNext();
 
-			if (wcscmp(current->GetEntity()->GetName(), name) == 0) {
+			if (strcmp(current->GetEntity()->GetName(), name) == 0) {
 				return current->GetEntity();
 			}
 		}

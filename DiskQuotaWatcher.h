@@ -9,11 +9,11 @@ private:
 	int quota; // in bytes
 
 public:
-	DiskQuotaWatcher(wchar_t* logsDir, int quota);
+	DiskQuotaWatcher(PSTR logsDir, int quota);
 	~DiskQuotaWatcher(void);
 	int GetQuota() { return quota; }
 	void SetQuota(int quota) { this->quota = quota; }
 	void KeepLogsWithinQuota();
-	void RegisterNewFile(wchar_t* file);
+	void RegisterNewFile(PSTR file);
 };
 

