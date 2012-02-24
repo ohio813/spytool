@@ -1,4 +1,4 @@
-#pragma 
+#pragma once
 #include "FileSystemEntity.h"
 
 class DiskQuotaWatcher
@@ -9,6 +9,8 @@ private:
 	int quota; // in bytes
 
 public:
+	static const int DEFAULT_QUOTA = 10*1024*1024; // 10 MB
+
 	DiskQuotaWatcher(PSTR logsDir, int quota);
 	~DiskQuotaWatcher(void);
 	int GetQuota() { return quota; }

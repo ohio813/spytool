@@ -80,10 +80,10 @@ public:
 
 	ListNode* GetNext() {
 		if (current == NULL) {
-			current == head;
+			current = head;
 		}
 		else {
-			current == current->GetNext();
+			current = current->GetNext();
 		}
 
 		return current;

