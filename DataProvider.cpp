@@ -16,7 +16,7 @@ PSTR DataProvider::GetNewDataFileName()
 	strcat(fileName, "\\");
 
 	char date[20];
-	sprintf(date, "%hu_%hu_%hu\n", localTime.wDay, localTime.wMonth, localTime.wYear);
+	sprintf(date, "%02hu_%02hu_%02hu", localTime.wYear, localTime.wMonth, localTime.wDay);
 	strcat(fileName, date);
 
 	strcat(fileName, "\\");

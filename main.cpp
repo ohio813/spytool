@@ -6,7 +6,6 @@
 #include "KeyLogger.h"
 
 /** What next:
- *  	1) Should test DiskQuotaWatcher.KeepLogsWithinQuota() when the logs really excees the quota
  *  	2) Video grabber!
  **/
 	

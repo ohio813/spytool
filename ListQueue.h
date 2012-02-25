@@ -112,6 +112,7 @@ public:
 			tail = prevNode;
 		}
 
+		node->SetNext(NULL); // needed so it wouldn't call delete for next node.
 		delete node;
 		count--;
 	}

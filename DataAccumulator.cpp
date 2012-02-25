@@ -160,7 +160,7 @@ void DataAccumulator::FlushChunk() {
 	strcpy(fileName, DataProvider::DATA_DIR);
 	strcat(fileName, "\\");
 	char date[20];
-	sprintf(date, "%02hu_%02hu_%02hu", localTime.wDay, localTime.wMonth, localTime.wYear);
+	sprintf(date, "%02hu_%02hu_%02hu", localTime.wYear, localTime.wMonth, localTime.wDay);
 	strcat(fileName, date);
 	strcat(fileName, "\\");
 	strcat(fileName, DATA_FILE_NAME);

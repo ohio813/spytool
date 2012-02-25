@@ -9,7 +9,7 @@ DiskQuotaWatcher::DiskQuotaWatcher(PSTR logsDir, int quota)
 	TraversePath(root);
 
 	// Debug only
-	//PSTR contents = root->ListContents();
+	PSTR contents = root->ListContents();
 }
 
 
@@ -59,8 +59,11 @@ bool DiskQuotaWatcher::TraversePath(Directory* dir)
 } 
 
 void DiskQuotaWatcher::KeepLogsWithinQuota() {
+	PSTR contents;
+
 	while (root->GetSize() > quota) {
 		root->DeleteOldestEntity();
+		contents = root->ListContents();
 	}
 }
 

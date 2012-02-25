@@ -160,7 +160,7 @@ public:
 		for(int iter = 1; iter < innerEntities->GetCount(); iter++) {
 			prevNode = next;
 			next = ((EntityNode*)innerEntities->GetNext());
-			if (strcmp(oldest->GetEntity()->GetName(), next->GetEntity()->GetName()) < 0) {
+			if (strcmp(oldest->GetEntity()->GetName(), next->GetEntity()->GetName()) > 0) {
 				oldest = next;
 				prevOldest = prevNode;
 			}
