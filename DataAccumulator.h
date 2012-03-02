@@ -11,6 +11,7 @@ private:
 	BOOL mIsFirstLog;
 	DiskQuotaWatcher* quotaWatcher;
 	FILETIME mLastLogTime;
+	SYSTEMTIME mFirstLogInFile;
 	int mCurrentChunkLength;
 	WCHAR* chunk;
 	bool mPreviousRowExists;

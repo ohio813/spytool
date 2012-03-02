@@ -24,7 +24,7 @@ PSTR DataProvider::GetNewDataFileName()
 	strcat(fileName, "\\");
 
 	char time[20];
-	sscanf(time, "%d_%d_%d", localTime.wHour, localTime.wMinute, localTime.wSecond);
+	sprintf(time, "%02hu_%02hu_%02hu", localTime.wHour, localTime.wMinute, localTime.wSecond);
 	strcat(fileName, time);
 	
 	strcat(fileName, ".");

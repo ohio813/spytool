@@ -59,11 +59,8 @@ bool DiskQuotaWatcher::TraversePath(Directory* dir)
 } 
 
 void DiskQuotaWatcher::KeepLogsWithinQuota() {
-	PSTR contents;
-
 	while (root->GetSize() > quota) {
 		root->DeleteOldestEntity();
-		contents = root->ListContents();
 	}
 }
 
@@ -93,6 +90,5 @@ void DiskQuotaWatcher::RegisterNewFile(PSTR file) {
 		dirName = strtok(NULL, "/\"");
 	}
 
-	// TODO: Check if file must have full path in its name
 	current->AddEntity(new File(fileName)); 
 }

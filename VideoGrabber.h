@@ -10,16 +10,22 @@ private:
 	// if two grayscaled pixels differs by this (or bigger) value, these pixels are different
 	static const int PIXELS_DIFFERENCE_TRESHOLD = 10; 
 	HWND camhwnd;
-	BOOL mIsFrameGrabbed;
+	BOOL mGrabNextFrame;
 	PBITMAPINFO mBitmapInfo;
 	PBYTE mPreviousFrame;
 	HANDLE mListenerHandle;
 	DWORD mThreadID;
 	BOOL mMotionDetectedDuringLastSecond;
-	void GrabFrame();
+	BOOL mPreviousFrameExists;
+	HANDLE mFrameProcessedEvent;
+	PBYTE mCurrentFrameGS;
+	PBYTE mCurrentFrameBlurred;
+
+	void GrabFrame(BOOL isInCapturingState);
 
 	friend DWORD WINAPI ListeningRoutine(LPVOID lpParam);
 	friend LRESULT CALLBACK FrameCallbackProc(HWND hWnd, LPVIDEOHDR lpVHdr);
+	friend LRESULT CALLBACK capErrorCallback(HWND hWnd, int nID, LPCTSTR lpsz);
 
 protected:
 	PSTR GetName();

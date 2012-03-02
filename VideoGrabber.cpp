@@ -3,6 +3,8 @@
 #include <windows.h>
 #include <vfw.h>
 #include <tchar.h>
+#include <DbgHelp.h>
+#include <WinUser.h>
 
 const int FRAME_WIDTH = 300;
 const int FRAME_HEIGHT = 300;
@@ -11,14 +13,28 @@ VideoGrabber::VideoGrabber(void)
 {
 	mPreviousFrame = NULL;
 	mBitmapInfo = NULL;
-	mIsFrameGrabbed = false;
-
-	mListenerHandle = CreateThread(0, 0, ListeningRoutine, this, CREATE_SUSPENDED, &mThreadID);
+	mCurrentFrameGS = NULL;
+	mCurrentFrameBlurred = NULL;
+	// No security opts, automatic reset, initial state: unsignaled, unnamed
+	mFrameProcessedEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 }
 
 VideoGrabber::~VideoGrabber(void)
 {
-	CloseHandle(mListenerHandle);
+	delete[] mBitmapInfo;
+	if (mCurrentFrameGS != NULL) {
+		delete[] mCurrentFrameGS;
+	}
+	if (mCurrentFrameBlurred != NULL) {
+		delete[] mCurrentFrameBlurred;
+	}
+	if (mPreviousFrame != NULL) {
+		delete[] mPreviousFrame;
+	}
+	if (mBitmapInfo != NULL) {
+		delete mBitmapInfo;
+	}
+	CloseHandle(mFrameProcessedEvent);
 }
 
 PSTR VideoGrabber::GetName()
@@ -33,73 +49,131 @@ PSTR VideoGrabber::GetExtension()
 
 void VideoGrabber::Init()
 {
+	mGrabNextFrame = FALSE;
+	mPreviousFrameExists = FALSE;
+
 	// Setup capture window and connect webcam driver
 	camhwnd = capCreateCaptureWindow (_T("Ahtung!"), 0 , 0, 0, FRAME_WIDTH, FRAME_HEIGHT, 0, 0);
 	SendMessage(camhwnd, WM_CAP_DRIVER_CONNECT, 0, 0);
 	capSetCallbackOnFrame(camhwnd, FrameCallbackProc);
+	capSetCallbackOnVideoStream(camhwnd, FrameCallbackProc); // Use same callback function, consider mGrabNextFrame flag!
 	capSetUserData(camhwnd, this); // Callback functions may use pointer to this VideoGrabber
 
-	if (mPreviousFrame != NULL)
-		delete[] mPreviousFrame;
-	mPreviousFrame = NULL;
+	if (mPreviousFrame != NULL) {
+		delete[] mPreviousFrame; 
+		mPreviousFrame = NULL;
+	}
 
 	mMotionDetectedDuringLastSecond = FALSE;
 
+	// TODO: Use MPEGLAYER3WAVEFORMAT instead this
+	// Setup audio params
+	WAVEFORMATEX wfex;
+
+	wfex.wFormatTag = WAVE_FORMAT_PCM;
+	wfex.nChannels = 1;                // Use mono
+	wfex.nSamplesPerSec = 8000;
+	wfex.nAvgBytesPerSec = 8000;
+	wfex.nBlockAlign = 1;
+	wfex.wBitsPerSample = 8;
+	wfex.cbSize = 0;
+	capSetAudioFormat(camhwnd, &wfex, sizeof(WAVEFORMATEX)); 
+
 	// Setup video capturing and streaming
 	CAPTUREPARMS parms;
-	parms.fAbortLeftMouse = FALSE;
-	parms.fAbortRightMouse = FALSE;
-	parms.fLimitEnabled = TRUE;
-	parms.wTimeLimit = 0; // TODO!
-	parms.fYield = TRUE; // TODO!
+	capCaptureGetSetup(camhwnd, &parms, sizeof(CAPTUREPARMS));
 
+	parms.fAbortLeftMouse = FALSE;
+	parms.wPercentDropForError = 100; // Never abort capturing in case of dropped frames
+	parms.fAbortRightMouse = FALSE;
+	//parms.fLimitEnabled = TRUE;
+	//parms.wTimeLimit = 0; // TODO!
+	parms.fYield = TRUE; // TODO!
 	capCaptureSetSetup(camhwnd, &parms, sizeof(parms));
+
+	// !!!
+	capSetCallbackOnError(camhwnd, capErrorCallback);
+
+	// Resume thread for motion detection
+	mListenerHandle = CreateThread(0, 0, ListeningRoutine, this, CREATE_SUSPENDED, &mThreadID);
+	SetEnabled(TRUE);
+	ResumeThread(mListenerHandle);
+}
+
+LRESULT CALLBACK capErrorCallback(HWND hWnd, int nID, LPCTSTR lpsz) {
+	CHAR errorMsg[100];
+	wsprintf(errorMsg, "Error message: %s\nError Code: %d", lpsz, nID);
+	MessageBox(NULL, errorMsg, "CAP ERROR", MB_OK | MB_ICONERROR);
+	return 0;
 }
 
 void VideoGrabber::Finalize()
 {
+	const int LISTENING_THREAD_TIMEOUT = 3000;
+
 	SendMessage(camhwnd, WM_CAP_STOP, 0, 0);
 	SendMessage(camhwnd, WM_CAP_DRIVER_DISCONNECT, 0, 0);
 
+	// Terminate listening thread
 	SetEnabled(FALSE);
+	WaitForSingleObject(mListenerHandle, LISTENING_THREAD_TIMEOUT);
+	CloseHandle(mListenerHandle);
 }
 
 DWORD WINAPI ListeningRoutine(LPVOID lpParam) 
 {
+	const int SAMPLING_FRAME_RATE = 1; // per second
+
 	BOOL isCapturing = FALSE;
 	VideoGrabber* videoGrabber = (VideoGrabber*)lpParam;
 	static PTSTR captureFileName;
 	
 	while (videoGrabber->IsEnabled())
 	{
-		videoGrabber->GrabFrame();
-
+		videoGrabber->GrabFrame(isCapturing);
+		int recode;
 		if (videoGrabber->mMotionDetectedDuringLastSecond) 
 		{
 			if (!isCapturing)
 			{
 				captureFileName = videoGrabber->GetNewDataFileName();
-				// MakeSureDirectiryPathExists(captureFileName);
-				capFileSetCaptureFile(videoGrabber->camhwnd, captureFileName);
-				capCaptureSequence(videoGrabber->camhwnd);
+				MakeSureDirectoryPathExists(captureFileName);
+				recode = capFileSetCaptureFile(videoGrabber->camhwnd, captureFileName);
+				recode = capCaptureSequence(videoGrabber->camhwnd);
+				isCapturing = TRUE;
 			}
 		} 
 		else if (isCapturing)
 		{
-			capCaptureStop(videoGrabber->camhwnd);
+			recode = capCaptureStop(videoGrabber->camhwnd);
+			recode = GetLastError();
 			videoGrabber->GetDataAccumulator()->LogVideo(captureFileName);
+			isCapturing = FALSE;
 		}
 
-		Sleep(1000); 
+		Sleep(1000/SAMPLING_FRAME_RATE); 
 	}
 	return FALSE;
 }
 
-void VideoGrabber::GrabFrame()
+void VideoGrabber::GrabFrame(BOOL isInCapturingState)
 {
-	// Grab a Frame and continue to capture (don't stop)
-	// After the frame is grabbed a callback function is called (FrameCallbackProc)
-	SendMessage(camhwnd, WM_CAP_GRAB_FRAME_NOSTOP, 0, 0);
+	const int FRAME_PROCESSING_TIMEOUT = 1000; // 1 second
+
+	// Indicate we are wanting to grab mext frame.
+	mGrabNextFrame = TRUE;
+
+	// We need to distinguish capturing state because during capturing it is impossible 
+	// to grab single frames. This is done in CallBackOnVideoStream instead which in our
+	// case is the same callback function as CallbackOnGrabFrame.
+	if (!isInCapturingState) {
+		// After the frame is grabbed a callback function is called (FrameCallbackProc)
+		SendMessage(camhwnd, WM_CAP_GRAB_FRAME_NOSTOP, 0, 0);
+	}
+	// When IsInCapturingState the callback function is called for each frame (30 fps)
+
+	// Need to wait here until the frame is processed and possible motion detected
+	DWORD result = WaitForSingleObject(mFrameProcessedEvent, FRAME_PROCESSING_TIMEOUT);
 }
 
 static void ApplyGrayScaleFilter(LPVIDEOHDR frameHeader, PBYTE targetBuffer) 
@@ -153,42 +227,47 @@ static int CompareFrames(PBYTE frameA, PBYTE frameB, PBITMAPINFO frameInfo, int 
 // Frame data is stored in lpVHdr 
 static LRESULT CALLBACK FrameCallbackProc(HWND hWnd, LPVIDEOHDR lpVHdr)
 {
-	static PBYTE currentFrameGS;
-	static PBYTE currentFrameBlurred;
-	// If no data provided by driver - nothing to do
+//	static PBYTE currentFrameGS;
+//	static PBYTE currentFrameBlurred;
+	// If no data provided by driver (dropped frame) - nothing to do
 	if (lpVHdr->dwBytesUsed == 0) return FALSE;
 	
 	int grayScaleSize = lpVHdr->dwBytesUsed/3; // RGB uses 24 BPP, GS is 8 BPP
 
 	// Get pointer to our video grabber - remember, this is friend function
 	VideoGrabber* videoGrabber = (VideoGrabber*) capGetUserData(hWnd);
-	if (videoGrabber->mIsFrameGrabbed)
+	if (videoGrabber->mGrabNextFrame)
 	{
 		// Get video format from driver (including resolution)
 		if (videoGrabber->mBitmapInfo == NULL) 
 		{
+			// All these lines are run only once! I put them here and not in the constructor \
+			   because I need to run them in context of callback. Strange though...
 			DWORD videoFormatSize = capGetVideoFormatSize(videoGrabber->camhwnd);
 			videoGrabber->mBitmapInfo = (PBITMAPINFO) new char[videoFormatSize];	
 			capGetVideoFormat(videoGrabber->camhwnd, videoGrabber->mBitmapInfo, videoFormatSize);
-			currentFrameGS = new BYTE[grayScaleSize];
-			currentFrameBlurred = new BYTE[grayScaleSize];
+			videoGrabber->mCurrentFrameGS = new BYTE[grayScaleSize];
+			videoGrabber->mCurrentFrameBlurred = new BYTE[grayScaleSize];
+			videoGrabber->mPreviousFrame = new BYTE[grayScaleSize];
 		}
 
-		ApplyGrayScaleFilter(lpVHdr, currentFrameGS); // Pass current frame data to grayscale it
+		ApplyGrayScaleFilter(lpVHdr, videoGrabber->mCurrentFrameGS); // Pass current frame data to grayscale it
 		// Blurring decreases noise. mBitmapInfo contains frame dimensions (width & height)
-		ApplyAverageBlurFilter(currentFrameGS, videoGrabber->mBitmapInfo, currentFrameBlurred);
+		ApplyAverageBlurFilter(videoGrabber->mCurrentFrameGS, videoGrabber->mBitmapInfo, videoGrabber->mCurrentFrameBlurred);
 
-		if (videoGrabber->mPreviousFrame != NULL)
+		if (videoGrabber->mPreviousFrameExists)
 		{
 			// Calculate difference between frames
-			int differedPixelsNum = CompareFrames(currentFrameBlurred, videoGrabber->mPreviousFrame, 
+			int differedPixelsNum = CompareFrames(videoGrabber->mCurrentFrameBlurred, videoGrabber->mPreviousFrame, 
 				videoGrabber->mBitmapInfo, videoGrabber->PIXELS_DIFFERENCE_TRESHOLD);
 			videoGrabber->mMotionDetectedDuringLastSecond = 
 				(differedPixelsNum > videoGrabber->MOTION_TRESHOLD); // Motion detected!
 		}
 
-		memcpy(videoGrabber->mPreviousFrame, currentFrameBlurred, grayScaleSize);
-		videoGrabber->mIsFrameGrabbed = FALSE;
+		memcpy(videoGrabber->mPreviousFrame, videoGrabber->mCurrentFrameBlurred, grayScaleSize);
+		videoGrabber->mPreviousFrameExists = TRUE;		// Now we have frame to compare with
+		videoGrabber->mGrabNextFrame = FALSE;			// frame for current second has been processed
+		SetEvent(videoGrabber->mFrameProcessedEvent);	// Signal about frame processing completion
 	}
 
 	return TRUE;

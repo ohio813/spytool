@@ -153,6 +153,8 @@ public:
 	}
 
 	void DeleteOldestEntity() {
+		if (innerEntities->GetCount() == 0) return; // Nothing to delete
+
 		innerEntities->ResetIter();
 		EntityNode *prevOldest = NULL, *oldest = ((EntityNode*)innerEntities->GetNext()); // first entity
 		EntityNode *prevNode = NULL, *next = NULL;
