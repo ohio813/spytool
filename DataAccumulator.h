@@ -6,20 +6,28 @@ class DataAccumulator
 {
 private:
 	static const int BUFFER_SIZE;
+	static const int LOG_FILE_NAME_LENGTH;
 	static const PSTR const DATA_FILE_NAME;
+	static const PWSTR const SECTION_END_TAGS;
 
-	BOOL mIsFirstLog;
+	BOOL mIsFirstLog; // TODO: mIsFirstLogToday
 	DiskQuotaWatcher* quotaWatcher;
 	FILETIME mLastLogTime;
-	SYSTEMTIME mFirstLogInFile;
+	SYSTEMTIME mFirstLogInFile; // TODO: mFirstLogInFileTime
 	int mCurrentChunkLength;
 	WCHAR* chunk;
-	bool mPreviousRowExists;
-	bool mPreviousParagraphExists;
+	PSTR mCurrentLogFile;
+	BOOL mPreviousRowExists;
+	BOOL mPreviousParagraphExists;
+	BOOL mIsLogFileGenerated;
+	HANDLE mLogLockEvent;
+	int GetElapsedSecondsFrom(FILETIME* date, BOOL updateDate);
 	int GetElapsedSecondsFromLastLog();
 	void Log2HTML(PWSTR htmlString);
 	void Append2Log(PWSTR appendee);
 	void FlushChunk();
+	void GenerateLogFileName(PSTR fileName);
+
 	LPCWSTR GetHtmlFromResource(int resourceId, PWORD length);
 
 public:

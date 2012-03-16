@@ -145,6 +145,12 @@ DWORD WINAPI ListeningRoutine(LPVOID lpParam)
 		} 
 		else if (isCapturing)
 		{
+			// ISSUE: Sometimes motion detected when there is no motion in the scene actually.
+			//        This is caused by automatic aperture enabled in webcam: the cam adjusting
+			//        its aperture to avoid under/overexposition. Hence brightness of pixels is 
+			//        changed and motion detection mechanism makes false alarm. However this can
+			//        be patched because the effect causes capture of 2-3 sec. video stream. So
+			//        quick and dirty solution would be to filter all streams shorter than 4 sec.
 			recode = capCaptureStop(videoGrabber->camhwnd);
 			recode = GetLastError();
 			videoGrabber->GetDataAccumulator()->LogVideo(captureFileName);
@@ -227,8 +233,6 @@ static int CompareFrames(PBYTE frameA, PBYTE frameB, PBITMAPINFO frameInfo, int 
 // Frame data is stored in lpVHdr 
 static LRESULT CALLBACK FrameCallbackProc(HWND hWnd, LPVIDEOHDR lpVHdr)
 {
-//	static PBYTE currentFrameGS;
-//	static PBYTE currentFrameBlurred;
 	// If no data provided by driver (dropped frame) - nothing to do
 	if (lpVHdr->dwBytesUsed == 0) return FALSE;
 	

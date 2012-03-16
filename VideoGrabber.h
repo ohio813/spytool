@@ -6,9 +6,13 @@
 class VideoGrabber : public DataProvider
 {
 private:
-	static const int MOTION_TRESHOLD = 100; // number of differed pixels from frame to frame for motion detection
-	// if two grayscaled pixels differs by this (or bigger) value, these pixels are different
-	static const int PIXELS_DIFFERENCE_TRESHOLD = 10; 
+	// Number of differed pixels from frame to frame for motion detection
+	static const int MOTION_TRESHOLD = 100; 
+	// If two grayscaled pixels differs by this (or bigger) value, these pixels are different
+	static const int PIXELS_DIFFERENCE_TRESHOLD = 30; 
+	// Maximum length of single file. Avoid huge files which may take too much space on HD
+	static const int MAX_SECONDS_PER_FILE = 60;
+
 	HWND camhwnd;
 	BOOL mGrabNextFrame;
 	PBITMAPINFO mBitmapInfo;
